@@ -1,17 +1,19 @@
 package core;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class QuestionDAO {
+    private static final String URL = "jdbc:mysql://localhost:3306/interview_manager";
+    private static final String USER = "root";
+    private static final String PASS = "";
 
-    public static List<Question> getAllQuestions() {
-        List<Question> list = new ArrayList<>();
-        String query = "SELECT * FROM questions";
-        try (Connection conn = DBConnection.getConnection();
+    public static List<Question> loadAllQuestions() {
+        List<Question> questions = new ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM questions")) {
+
             while (rs.next()) {
                 Question q = new Question(
                         rs.getInt("id"),
@@ -19,40 +21,37 @@ public class QuestionDAO {
                         rs.getString("company"),
                         rs.getString("college"),
                         rs.getString("difficulty"),
-                        rs.getString("topic")
+                        rs.getString("topic"),
+                        rs.getString("createdBy")
                 );
-                list.add(q);
+                questions.add(q);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Error loading questions from DB: " + e.getMessage());
         }
-        return list;
+        return questions;
     }
 
-    public static void saveQuestions(List<Question> questions) {
-        String deleteQuery = "DELETE FROM questions"; // clear table
-        String insertQuery = "INSERT INTO questions (id, question, company, college, difficulty, topic) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             PreparedStatement ps = conn.prepareStatement(insertQuery)) {
-
-            conn.setAutoCommit(false);
-            stmt.executeUpdate(deleteQuery); // remove old rows
-
-            for (Question q : questions) {
-                ps.setInt(1, q.getId());          // use getter
-                ps.setString(2, q.getQuestion()); // use getter
-                ps.setString(3, q.getCompany());  // use getter
-                ps.setString(4, q.getCollege());  // use getter
-                ps.setString(5, q.getDifficulty());// use getter
-                ps.setString(6, q.getTopic());    // use getter
-                ps.addBatch();
+    public static void saveAllQuestions(List<Question> questions) {
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
+            conn.createStatement().executeUpdate("DELETE FROM questions"); // clear old
+            String sql = "INSERT INTO questions (id, question, company, college, difficulty, topic, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Question q : questions) {
+                    ps.setInt(1, q.getId());
+                    ps.setString(2, q.getQuestion());
+                    ps.setString(3, q.getCompany());
+                    ps.setString(4, q.getCollege());
+                    ps.setString(5, q.getDifficulty());
+                    ps.setString(6, q.getTopic());
+                    ps.setString(7, q.createdBy);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
             }
-            ps.executeBatch();
-            conn.commit();
-
+            System.out.println("Questions saved to database successfully!");
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Error saving questions to DB: " + e.getMessage());
         }
     }
 }

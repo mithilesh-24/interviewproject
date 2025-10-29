@@ -2,6 +2,9 @@ package dataStructure;
 
 import core.Question;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LinkedList {
     private static class Node {
         Question data;
@@ -74,5 +77,14 @@ public class LinkedList {
             System.out.println(current.data);
             current = current.next;
         }
+    }
+    public List<Question> toList() {
+        List<Question> list = new ArrayList<>();
+        Node current = head;
+        while (current != null) {
+            list.add(current.data);
+            current = current.next;
+        }
+        return list;
     }
 }

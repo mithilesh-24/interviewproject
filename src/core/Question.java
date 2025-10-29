@@ -7,14 +7,16 @@ public class Question {
     private String college;
     private String difficulty;
     private String topic;
+    public String createdBy;
 
-    public Question(int id, String question, String company, String college, String difficulty, String topic) {
+    public Question(int id, String question, String company, String college, String difficulty, String topic, String createdBy) {
         this.id = id;
         this.question = question;
         this.company = company;
         this.college = college;
         this.difficulty = difficulty;
         this.topic = topic;
+        this.createdBy = createdBy;
     }
     public int getId() { return id; }
     public String getQuestion() { return question; }
@@ -30,6 +32,7 @@ public class Question {
                 "  Company   : " + company +"\n"+
                 "  College   : " + college +"\n"+
                 " Difficulty : " + difficulty +"\n"+
-                "   Topic    : " + topic+"\n\n";
+                "   Topic    : " + topic+"\n"+
+                "Created By  : " + createdBy+"\n";
     }
 }
