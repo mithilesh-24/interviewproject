@@ -1,43 +1,49 @@
 package core;
+
 import dataStructure.AvlTree;
 import dataStructure.LinkedList;
-
 import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         boolean loggedIn = false;
+        boolean isAdmin = false;
         String loggedUser = null;
+
+        final String ADMIN_USERNAME = "admin";
+        final String ADMIN_PASSWORD = "admin123";
+
         AvlTree avlTree = new AvlTree();
         LinkedList linkedList = new LinkedList();
-        preloadQuestions(avlTree,linkedList);
+        preloadQuestions(avlTree, linkedList);
+
         while (true) {
             while (!loggedIn) {
                 System.out.println("=== Welcome to Interview Manager ===");
                 System.out.println("1. Sign Up");
                 System.out.println("2. Login");
-                System.out.println("3. Exit");
+                System.out.println("3. Admin Login");
+                System.out.println("4. Exit");
                 System.out.print("Choose an option: ");
 
                 int option;
                 try {
                     option = Integer.parseInt(sc.nextLine());
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid input. Enter 1, 2, or 3.");
+                    System.out.println("Invalid input. Enter 1, 2, 3, or 4.");
                     continue;
                 }
 
-                switch(option) {
+                switch (option) {
                     case 1:
                         while (true) {
-
-
                             System.out.print("Enter username: ");
                             String newUser = sc.nextLine().trim();
                             System.out.print("Enter password: ");
                             String newPass = sc.nextLine().trim();
 
-                            if(UserDAO.signUp(newUser, newPass)) {
+                            if (UserDAO.signUp(newUser, newPass)) {
                                 System.out.println("Sign up successful! Please login.");
                                 break;
                             } else {
@@ -48,17 +54,16 @@ public class Main {
 
                     case 2:
                         while (true) {
-
-
                             System.out.print("Enter username: ");
                             String username = sc.nextLine().trim();
                             System.out.print("Enter password: ");
                             String password = sc.nextLine().trim();
 
-                            if(UserDAO.login(username, password)) {
+                            if (UserDAO.login(username, password)) {
                                 System.out.println("Login successful! Welcome " + username);
                                 loggedIn = true;
                                 loggedUser = username;
+                                isAdmin = false;
                                 break;
                             } else {
                                 System.out.println("Invalid username or password. Try again.");
@@ -67,14 +72,29 @@ public class Main {
                         break;
 
                     case 3:
+                        System.out.print("Enter Admin Username: ");
+                        String adminUser = sc.nextLine().trim();
+                        System.out.print("Enter Admin Password: ");
+                        String adminPass = sc.nextLine().trim();
+
+                        if (adminUser.equals(ADMIN_USERNAME) && adminPass.equals(ADMIN_PASSWORD)) {
+                            System.out.println("Admin login successful! Welcome, Admin.");
+                            loggedIn = true;
+                            loggedUser = adminUser;
+                            isAdmin = true;
+                        } else {
+                            System.out.println("Invalid Admin credentials.");
+                        }
+                        break;
+
+                    case 4:
                         System.out.println("Exiting program... Goodbye!");
                         return;
 
                     default:
-                        System.out.println("Invalid option. Enter 1, 2, or 3.");
+                        System.out.println("Invalid option. Enter 1, 2, 3, or 4.");
                 }
             }
-
 
             int id;
             String question;
@@ -86,11 +106,13 @@ public class Main {
             while (loggedIn) {
                 System.out.println("\n=== Interview Question Manager ===");
                 System.out.println("1. Add Question");
-                System.out.println("2. View Question");
+                System.out.println("2. View All Questions");
                 System.out.println("3. Search Question");
                 System.out.println("4. Delete Question");
-                System.out.println("5. Logout");
-                System.out.println("6. Exit");
+                System.out.println("5. Modify Question");
+                System.out.println("6. View My Questions");
+                System.out.println("7. Logout");
+                System.out.println("8. Exit");
                 System.out.print("Choose an option: ");
 
                 int choice;
@@ -210,7 +232,7 @@ public class Main {
 
                             if (qToDelete == null) {
                                 System.out.println("No question found with that ID.");
-                            } else if (!qToDelete.createdBy.equals(loggedUser)) {
+                            } else if (!isAdmin && !qToDelete.createdBy.equals(loggedUser)) {
                                 System.out.println("You can only delete questions you added.");
                             } else {
                                 avlTree.delete(deleteId);
@@ -223,18 +245,73 @@ public class Main {
                         break;
 
                     case 5:
+                        System.out.print("Enter Question ID to modify: ");
+                        try {
+                            int modifyId = Integer.parseInt(sc.nextLine());
+                            Question qToModify = avlTree.search(modifyId);
+
+                            if (qToModify == null) {
+                                System.out.println("No question found with that ID.");
+                            } else if (!isAdmin && !qToModify.createdBy.equals(loggedUser)) {
+                                System.out.println("You can only modify your own questions.");
+                            } else {
+                                System.out.println("Editing Question ID " + modifyId);
+
+                                System.out.print("Enter new Question (press Enter to skip): ");
+                                String newQ = sc.nextLine().trim();
+                                if (!newQ.isEmpty()) qToModify = new Question(qToModify.id, newQ, qToModify.getCompany(), qToModify.getCollege(), qToModify.getDifficulty(), qToModify.getTopic(), qToModify.createdBy);
+
+                                System.out.print("Enter new Company (press Enter to skip): ");
+                                String newC = sc.nextLine().trim();
+                                if (!newC.isEmpty()) qToModify = new Question(qToModify.id, qToModify.getQuestion(), newC, qToModify.getCollege(), qToModify.getDifficulty(), qToModify.getTopic(), qToModify.createdBy);
+
+                                System.out.print("Enter new College (press Enter to skip): ");
+                                String newCol = sc.nextLine().trim();
+                                if (!newCol.isEmpty()) qToModify = new Question(qToModify.id, qToModify.getQuestion(), qToModify.getCompany(), newCol, qToModify.getDifficulty(), qToModify.getTopic(), qToModify.createdBy);
+
+                                System.out.print("Enter new Difficulty (Easy/Medium/Hard or Enter to skip): ");
+                                String newDiff = sc.nextLine().trim();
+                                if (!newDiff.isEmpty() && validDifficulty(newDiff))
+                                    qToModify = new Question(qToModify.id, qToModify.getQuestion(), qToModify.getCompany(), qToModify.getCollege(), newDiff, qToModify.getTopic(), qToModify.createdBy);
+
+                                System.out.print("Enter new Topic (press Enter to skip): ");
+                                String newT = sc.nextLine().trim();
+                                if (!newT.isEmpty())
+                                    qToModify = new Question(qToModify.id, qToModify.getQuestion(), qToModify.getCompany(), qToModify.getCollege(), qToModify.getDifficulty(), newT, qToModify.createdBy);
+
+                                avlTree.delete(modifyId);
+                                linkedList.delete(modifyId);
+                                avlTree.insert(qToModify);
+                                linkedList.insert(qToModify);
+                                System.out.println("Question updated successfully!");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid ID format.");
+                        }
+                        break;
+
+                    case 6:
+                        System.out.println("Your Questions:");
+                        boolean hasQuestions = linkedList.displayByUser(loggedUser);
+                        if (!hasQuestions) {
+                            System.out.println("No questions created by you.");
+                        }
+                        break;
+
+                    case 7:
                         System.out.println("Saving questions to MySQL...");
                         QuestionDAO.saveAllQuestions(linkedList.toList());
                         System.out.println("Logging out...");
                         loggedIn = false;
                         loggedUser = null;
+                        isAdmin = false;
                         break;
 
-                    case 6:
+                    case 8:
                         System.out.println("Saving questions to MySQL...");
                         QuestionDAO.saveAllQuestions(linkedList.toList());
                         System.out.println("Exiting program...");
-                        System.out.println("🙋‍♂️🙋‍♂️🙋Press enter to exit...");
+                        System.out.println("🙋‍♂️ Press Enter to exit...");
                         sc.nextLine();
                         return;
 

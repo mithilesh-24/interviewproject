@@ -87,4 +87,18 @@ public class LinkedList {
         }
         return list;
     }
+    public boolean displayByUser(String username) {
+        Node temp = head;
+        boolean found = false;
+        while (temp != null) {
+            if (temp.data.createdBy.equals(username)) {
+                System.out.println(temp.data);
+                found = true;
+            }
+            temp = temp.next;
+        }
+        return found;
+    }
+
+
 }
