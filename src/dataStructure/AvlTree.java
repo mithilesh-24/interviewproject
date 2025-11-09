@@ -6,7 +6,7 @@ import java.util.List;
 
 
 public class AvlTree {
-    private static class Node {
+    public static class Node {
         Question data;
         Node left, right;
         int height;
@@ -15,9 +15,15 @@ public class AvlTree {
             this.data = data;
             this.height = 0;
         }
+        public Question getData() { return data; }
+        public Node getLeft() { return left; }
+        public Node getRight() { return right; }
     }
 
     private Node root;
+    public Node getRoot() {
+        return root;
+    }
 
     private int height(Node n) {
         return n == null ? -1 : n.height;

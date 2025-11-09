@@ -4,15 +4,13 @@ import java.sql.*;
 
 public class UserDAO {
 
-
-    public static boolean signUp(String username, String password) {
+    // ---------------- SIGN UP ----------------
+    public static String signUp(String username, String password) {
         if (!isValidUsername(username)) {
-            System.out.println("Sign up failed: Username must be 3-20 characters, alphanumeric or underscores.");
-            return false;
+            return "Username must be 3–20 characters, alphanumeric or underscores.";
         }
         if (!isValidPassword(password)) {
-            System.out.println("Sign up failed: Password must be at least 6 characters, include letters and numbers.");
-            return false;
+            return "Password must be at least 6 characters long and contain letters and numbers.";
         }
 
         String query = "INSERT INTO users (username, password) VALUES (?, ?)";
@@ -21,18 +19,19 @@ public class UserDAO {
             ps.setString(1, username);
             ps.setString(2, password);
             ps.executeUpdate();
-            return true;
+            return "SUCCESS";
         } catch (SQLException e) {
-            System.out.println("Sign up failed: " + e.getMessage());
-            return false;
+            if (e.getMessage().toLowerCase().contains("duplicate")) {
+                return "Username already exists. Choose another.";
+            }
+            return "Database error: " + e.getMessage();
         }
     }
 
-
-    public static boolean login(String username, String password) {
+    // ---------------- LOGIN ----------------
+    public static String login(String username, String password) {
         if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
-            System.out.println("Login failed: Username and password cannot be empty.");
-            return false;
+            return "Username and password cannot be empty.";
         }
 
         String query = "SELECT * FROM users WHERE username=? AND password=?";
@@ -41,14 +40,17 @@ public class UserDAO {
             ps.setString(1, username);
             ps.setString(2, password);
             ResultSet rs = ps.executeQuery();
-            return rs.next();
+            if (rs.next()) {
+                return "SUCCESS";
+            } else {
+                return "Invalid username or password.";
+            }
         } catch (SQLException e) {
-            System.out.println("Login failed: " + e.getMessage());
-            return false;
+            return "Database error: " + e.getMessage();
         }
     }
 
-
+    // ---------------- USERNAME/PASSWORD VALIDATION ----------------
     private static boolean isValidUsername(String username) {
         return username != null && username.matches("\\w{3,20}");
     }

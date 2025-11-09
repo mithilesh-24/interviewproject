@@ -66,17 +66,18 @@ public class LinkedList {
     }
 
 
-    public void display() {
+    public String display() {
         if (head == null) {
-            System.out.println("No questions available.");
-            return;
+            return "No questions available.";
         }
 
+        StringBuilder sb = new StringBuilder();
         Node current = head;
         while (current != null) {
-            System.out.println(current.data);
+            sb.append(current.data.toString()).append("\n---------------------\n");
             current = current.next;
         }
+        return sb.toString();
     }
     public List<Question> toList() {
         List<Question> list = new ArrayList<>();
@@ -87,16 +88,22 @@ public class LinkedList {
         }
         return list;
     }
-    public boolean displayByUser(String username) {
-        Node temp = head;
+    public boolean displayByUser(String username, StringBuilder sb) {
+        if (head == null) {
+            return false;
+        }
+
+        Node current = head;
         boolean found = false;
-        while (temp != null) {
-            if (temp.data.createdBy.equals(username)) {
-                System.out.println(temp.data);
+
+        while (current != null) {
+            if (current.data.createdBy.equals(username)) {
+                sb.append(current.data.toString()).append("\n----------------------\n");
                 found = true;
             }
-            temp = temp.next;
+            current = current.next;
         }
+
         return found;
     }
 

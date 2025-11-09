@@ -1,7 +1,6 @@
 package core;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class QuestionDAO {
     private static final String URL = "jdbc:mysql://localhost:3306/interview_manager";
@@ -22,7 +21,8 @@ public class QuestionDAO {
                         rs.getString("college"),
                         rs.getString("difficulty"),
                         rs.getString("topic"),
-                        rs.getString("createdBy")
+                        rs.getString("createdBy"),
+                        rs.getString("solution")
                 );
                 questions.add(q);
             }
@@ -33,25 +33,31 @@ public class QuestionDAO {
     }
 
     public static void saveAllQuestions(List<Question> questions) {
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {
-            conn.createStatement().executeUpdate("DELETE FROM questions"); // clear old
-            String sql = "INSERT INTO questions (id, question, company, college, difficulty, topic, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                for (Question q : questions) {
-                    ps.setInt(1, q.getId());
-                    ps.setString(2, q.getQuestion());
-                    ps.setString(3, q.getCompany());
-                    ps.setString(4, q.getCollege());
-                    ps.setString(5, q.getDifficulty());
-                    ps.setString(6, q.getTopic());
-                    ps.setString(7, q.createdBy);
-                    ps.addBatch();
-                }
-                ps.executeBatch();
+        String sql = "INSERT INTO questions (id, question, company, college, difficulty, topic, createdBy, solution) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Optional: clear old records only if necessary
+            conn.createStatement().executeUpdate("DELETE FROM questions");
+
+            for (Question q : questions) {
+                ps.setInt(1, q.getId());
+                ps.setString(2, q.getQuestion());
+                ps.setString(3, q.getCompany());
+                ps.setString(4, q.getCollege());
+                ps.setString(5, q.getDifficulty());
+                ps.setString(6, q.getTopic());
+                ps.setString(7, q.createdBy);
+                ps.setString(8, q.getSolution());
+                ps.addBatch();
             }
-            System.out.println("Questions saved to database successfully!");
+
+            ps.executeBatch();
+            System.out.println("✅ Questions saved to database successfully!");
+
         } catch (SQLException e) {
-            System.out.println("Error saving questions to DB: " + e.getMessage());
+            System.out.println("❌ Error saving questions to DB: " + e.getMessage());
         }
     }
 }
